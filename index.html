@@ -122,9 +122,7 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
     border-radius: 0;
   }
   #profilePanel input,
-    <button id="saveProfileBtn" class="secondary">💾 Save Profile</button>
-
-  #profilePanel select,
+   #profilePanel select,
   #profilePanel button {
     width: 100%;
     margin-bottom: 8px;
@@ -221,6 +219,9 @@ body { background-clip: padding-box; }
     <button data-cat="Grains">🍚 Grains</button>
     <button data-cat="Other">🍲 Other</button>
   </div>
+  <button id="trashBtn">🗑️ Trash</button>
+<button id="clearTrashBtn" class="delete">🧹 Clear Trash</button>
+
 <!-- PROFILE SECTION -->
 <button id="profileBtn">👤 Profile</button>
 <div id="profilePanel" style="display:none; flex-direction:column; gap:12px; padding:10px; background:#fff; border-radius:12px; margin-top:10px;">
@@ -239,13 +240,26 @@ body { background-clip: padding-box; }
   </div>
 
   <!-- Shown when logged in -->
-  <div id="profileSection" style="display:none; flex-direction:column; gap:12px; text-align:center;">
-    <div id="profileAvatar" style="font-size:40px;">🐶</div>
-    <div id="profileName" style="font-weight:700; font-size:16px; margin-top:4px;">User</div>
-    <div id="profileEmail" style="font-size:13px; color:#666;">user@example.com</div>
-    <button id="logoutBtn" class="delete">🚪 Logout</button>
-  </div>
+  <!-- Shown when logged in -->
+<div id="profileSection" style="display:none; flex-direction:column; gap:12px; text-align:center;">
+  <div id="profileAvatar" style="font-size:40px;">🐶</div>
+  <div id="profileName" style="font-weight:700; font-size:16px; margin-top:4px;">User</div>
+  <div id="profileEmail" style="font-size:13px; color:#666;">user@example.com</div>
+
+  <!-- Editable fields -->
+  <input id="nameInput" type="text" placeholder="Your name 📝">
+  <input id="emailInput" type="email" placeholder="Your email 📧">
+  <select id="avatarSelect">
+    <option>🐶</option>
+    <option>🐱</option>
+    <option>🐰</option>
+    <option>🐼</option>
+  </select>
+  <button id="saveProfileBtn" class="secondary">💾 Save Profile</button>
+
+  <button id="logoutBtn" class="delete">🚪 Logout</button>
 </div>
+
 
 <div class="main">
   <div class="fm-container">
