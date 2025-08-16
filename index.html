@@ -455,15 +455,29 @@ addBtn.onclick=()=>{
   renderCurrentPanel();
   itemNameInput.value=''; expiryInput.value='';
 
-  // Immediate queue notifications
-  notifyDevice('FridgeMind', `Added ${name}`);
+ // Immediate queue notifications (Mobile Safe Fix)
+if (Notification.permission !== "granted") {
+  Notification.requestPermission().then(perm => {
+    if (perm === "granted") {
+      notifyDevice("FridgeMind", `Added ${name}`);
+      playReminderSound();
+      const dleft = daysUntil(obj.expiry);
+      if (dleft <= 3) {
+        notifyDevice("FridgeMind", `${name} is near expiry ⚠️ (${dleft} day${dleft===1?'':'s'})`);
+      }
+    } else {
+      showToast("Notifications blocked ❌");
+    }
+  });
+} else {
+  notifyDevice("FridgeMind", `Added ${name}`);
   playReminderSound();
-
   const dleft = daysUntil(obj.expiry);
   if (dleft <= 3) {
-    notifyDevice('FridgeMind', `${name} is near expiry ⚠️ (${dleft} day${dleft===1?'':'s'})`);
+    notifyDevice("FridgeMind", `${name} is near expiry ⚠️ (${dleft} day${dleft===1?'':'s'})`);
   }
-};
+}
+
 
 // --- Panel Switch ---
 homeBtn.onclick=()=>{ currentPanel='home'; renderCurrentPanel(); }
@@ -478,11 +492,19 @@ categorySubmenu.querySelectorAll('button[data-cat]').forEach(btn=>{
 toggleMenu.onclick=()=>{ sidebar.classList.toggle('show'); }
 toggleAnalytics.onclick=()=>{ analyticsContent.style.display=analyticsContent.style.display==='flex'?'none':'flex'; }
 
-// --- Test Notification (Fix #1) ---
-testNotifBtn.onclick=()=>{
-  notifyDevice('FridgeMind','This is a test notification!');
+// --- Test Notification (Mobile Safe Fix) ---
+testNotifBtn.onclick = async () => {
+  if (Notification.permission !== "granted") {
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") {
+      alert("Notifications are blocked ❌. Please enable them in your browser settings.");
+      return;
+    }
+  }
+  notifyDevice("FridgeMind", "This is a test notification!");
   playReminderSound();
 };
+
 
 // --- Near Expiry Notifications helper ---
 function scheduleExpiryNotifications(){
