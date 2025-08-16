@@ -133,6 +133,9 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// --- CONFIG (keeps your old code intact while letting us disable backend push safely) ---
+const FM_CONFIG = { ENABLE_BACKEND_PUSH:false };
+
 // Pantry data
 const pantry = {
   "tomato": { emoji:"🍅", recipes:["Tomato Chutney","Tomato Rasam","Tomato Rice"], expiry:7, category:"Vegetables" },
@@ -212,7 +215,14 @@ function findPantryKeyFromLabel(label){
   }
   return null;
 }
-function daysUntil(dateStr){ return Math.ceil((new Date(dateStr)-new Date())/(1000*60*60*24)); }
+function daysUntil(dateStr){ 
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return 9999;
+  const now = new Date();
+  // Zero out time for stable comparison
+  d.setHours(0,0,0,0); now.setHours(0,0,0,0);
+  return Math.ceil((d - now)/(1000*60*60*24)); 
+}
 function showToast(msg){
   const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
   document.body.appendChild(t);
@@ -226,8 +236,38 @@ function saveUserData() {
   localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
   localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
 }
-function notifyDevice(title,msg){ if(Notification.permission==='granted') new Notification(title,{body:msg,icon:'https://i.imgur.com/8QfU5Yq.png'}); }
-function playReminderSound(){ const audio=new Audio('https://www.soundjay.com/button/beep-07.wav'); audio.play(); }
+
+// --- NOTIFICATION QUEUE + PERMISSION (Fix #1) ---
+const _notifQueue = [];
+let _notifBusy = false;
+function ensureNotificationPermission(){
+  if (!("Notification" in window)) return Promise.resolve(false);
+  if (Notification.permission === "granted") return Promise.resolve(true);
+  if (Notification.permission === "denied") return Promise.resolve(false);
+  return Notification.requestPermission().then(p => p === "granted");
+}
+function _processNotifQueue(){
+  if (_notifBusy || _notifQueue.length===0) return;
+  _notifBusy = true;
+  const {title, body} = _notifQueue.shift();
+  try{
+    new Notification(title, { body, icon:'https://i.imgur.com/8QfU5Yq.png' });
+  }catch(e){ console.warn("Notification error:", e); }
+  setTimeout(()=>{ _notifBusy=false; _processNotifQueue(); }, 900); // gentle spacing
+}
+function notifyDevice(title,msg){ 
+  ensureNotificationPermission().then(ok => {
+    if(!ok) return;
+    _notifQueue.push({title, body:msg});
+    _processNotifQueue();
+  });
+}
+function playReminderSound(){ 
+  try{
+    const audio=new Audio('https://www.soundjay.com/button/beep-07.wav'); 
+    audio.play().catch(()=>{});
+  }catch(e){}
+}
 
 // --- Render Single Item ---
 function renderItem(obj){
@@ -291,7 +331,7 @@ function renderAnalytics(){
 }
 function createAnalyticsCard(title,val){ const c=document.createElement('div'); c.className='analytics-card'; c.innerHTML=`<h4>${title}</h4><p>${val}</p>`; return c; }
 
-// --- Add Item ---
+// --- Add Item (Fix #2 immediate notifications, including near-expiry) ---
 addBtn.onclick=()=>{
   const name=itemNameInput.value.trim();
   if(!name) return showToast('Please enter a name! 😿');
@@ -324,8 +364,15 @@ addBtn.onclick=()=>{
   showToast(`Added ${name} ✅`);
   renderCurrentPanel();
   itemNameInput.value=''; expiryInput.value='';
-  notifyDevice('FridgeMind','Added '+name);
+
+  // Immediate queue notifications
+  notifyDevice('FridgeMind', `Added ${name}`);
   playReminderSound();
+
+  const dleft = daysUntil(obj.expiry);
+  if (dleft <= 3) {
+    notifyDevice('FridgeMind', `${name} is near expiry ⚠️ (${dleft} day${dleft===1?'':'s'})`);
+  }
 };
 
 // --- Panel Switch ---
@@ -341,20 +388,21 @@ categorySubmenu.querySelectorAll('button[data-cat]').forEach(btn=>{
 toggleMenu.onclick=()=>{ sidebar.classList.toggle('show'); }
 toggleAnalytics.onclick=()=>{ analyticsContent.style.display=analyticsContent.style.display==='flex'?'none':'flex'; }
 
-// --- Test Notification ---
-testNotifBtn.onclick=()=>notifyDevice('FridgeMind','This is a test notification!');
+// --- Test Notification (Fix #1) ---
+testNotifBtn.onclick=()=>{
+  notifyDevice('FridgeMind','This is a test notification!');
+  playReminderSound();
+};
 
-// --- Near Expiry Notifications Twice Daily ---
+// --- Near Expiry Notifications helper ---
 function scheduleExpiryNotifications(){
   const nearExpItems=allItems.filter(i=>!i.deleted && daysUntil(i.expiry)<=3);
   nearExpItems.forEach(i=>{
     const msg=`${i.name} is near expiry ⚠️`;
     notifyDevice('FridgeMind',msg);
-    playReminderSound();
   });
+  if (nearExpItems.length) playReminderSound();
 }
-
-
 
 // --- Profile Feature ---
 const profileBtn = document.getElementById('profileBtn');
@@ -395,7 +443,6 @@ saveProfileBtn.onclick = () => {
   userProfile.avatar = avatarSelect.value;
   localStorage.setItem('userProfile', JSON.stringify(userProfile));
   renderProfile();
-loadUserData();
   loadUserData();       // load items for this email
   renderCurrentPanel(); // refresh UI
   showToast("Profile saved ✅");
@@ -408,12 +455,10 @@ logoutBtn.onclick = () => {
   allItems = [];
   trash = [];
   renderProfile();
-loadUserData();
+  loadUserData();
   renderCurrentPanel();
   showToast("Logged out 🚪");
 };
-
-
 
 // --- Clear Trash ---
 const clearTrashBtn = document.getElementById('clearTrashBtn');
@@ -427,16 +472,45 @@ clearTrashBtn.onclick = () => {
 };
 
 // --- Init ---
-if(Notification.permission!=='granted') Notification.requestPermission();
+ensureNotificationPermission().then(()=>{
+  if(Notification.permission!=='granted') Notification.requestPermission();
+});
 renderCurrentPanel();
 
-// Schedule twice daily at 9am and 6pm
+/* OLD schedule (kept, but commented to avoid double sends)
 setInterval(()=>{
   const now=new Date();
   if(now.getHours()===9 || now.getHours()===18) scheduleExpiryNotifications();
-},60*60*1000); // checks hourly
-  
-  // --- Push Subscription ---
+},60*60*1000);
+*/
+
+// --- Daily Twice Notification at 06:00 and 12:00 while browser is open (Fix #3) ---
+function _todayKey(prefix){ 
+  const d=new Date(); 
+  return `${prefix}-${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; 
+}
+function _shouldRunSlot(slot){ 
+  const k=_todayKey(`ran-${slot}`); 
+  const ran=localStorage.getItem(k); 
+  return !ran; 
+}
+function _markSlotRan(slot){ 
+  const k=_todayKey(`ran-${slot}`); 
+  localStorage.setItem(k,'1'); 
+}
+function _maybeRunTwiceDaily(){
+  const now = new Date();
+  const hh = now.getHours();
+  const mm = now.getMinutes();
+  // Slots: 06:00 and 12:00 local time
+  if (hh===6 && mm===0 && _shouldRunSlot('06')) { scheduleExpiryNotifications(); _markSlotRan('06'); }
+  if (hh===12 && mm===0 && _shouldRunSlot('12')) { scheduleExpiryNotifications(); _markSlotRan('12'); }
+  // Reset markers shortly after midnight
+  if (hh===0 && mm<5){ localStorage.removeItem(_todayKey('ran-06')); localStorage.removeItem(_todayKey('ran-12')); }
+}
+setInterval(_maybeRunTwiceDaily, 60*1000);
+
+// --- Push Subscription (kept in file but disabled by FM_CONFIG.ENABLE_BACKEND_PUSH) ---
 async function registerPush() {
   if ("serviceWorker" in navigator && "PushManager" in window) {
     const reg = await navigator.serviceWorker.register("/sw.js");
@@ -470,15 +544,15 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
 }
 
-// Call it once at startup
-registerPush();
+// Call it once at startup (disabled unless you flip the flag)
+if (FM_CONFIG.ENABLE_BACKEND_PUSH) {
+  registerPush();
+}
 
 </script>
 
 </body>
 </html>
-
-
 
 
 
