@@ -166,35 +166,30 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
     <button data-cat="Grains">🍚 Grains</button>
     <button data-cat="Other">🍲 Other</button>
   </div>
+<!-- PROFILE SECTION -->
+<button id="profileBtn">👤 Profile</button>
+<div id="profilePanel" style="display:none; flex-direction:column; gap:12px; padding:10px; background:#fff; border-radius:12px; margin-top:10px;">
 
-  <!-- PROFILE SECTION -->
-  <button id="profileBtn">👤 Profile</button>
-  <div id="profilePanel" style="display:none; flex-direction:column; gap:12px; padding:10px; background:#fff; border-radius:12px; margin-top:10px;">
-    <div style="text-align:center;">
-      <div id="profileAvatar" style="font-size:40px;">🐶</div>
-      <div id="profileName" style="font-weight:700; font-size:16px; margin-top:4px;">Guest</div>
-      <div id="profileEmail" style="font-size:13px; color:#666;">guest@example.com</div>
-    </div>
-    <input id="nameInput" type="text" placeholder="Enter your name 📝" />
-    <input id="emailInput" type="text" placeholder="Enter email 📧" />
-    <select id="avatarSelect">
-      <option value="🐶">🐶 Dog</option>
-      <option value="🐱">🐱 Cat</option>
-      <option value="🐰">🐰 Rabbit</option>
-      <option value="🐦">🐦 Bird</option>
-      <option value="🐢">🐢 Turtle</option>
-    </select>
-    <button id="saveProfileBtn" class="secondary">💾 Save Profile</button>
-    <button id="logoutBtn" class="delete">🚪 Logout</button>
+  <!-- Shown when NOT logged in -->
+  <div id="loginSection" style="display:flex; flex-direction:column; gap:8px;">
+    <h4>🔑 Login</h4>
+    <input id="loginEmail" type="text" placeholder="Email 📧" />
+    <input id="loginPassword" type="password" placeholder="Password 🔒" />
+    <button id="loginBtn" class="secondary">➡️ Login</button>
+
+    <h4>🆕 Sign Up</h4>
+    <input id="signupEmail" type="text" placeholder="Email 📧" />
+    <input id="signupPassword" type="password" placeholder="Password 🔒" />
+    <button id="signupBtn" class="secondary">✍️ Sign Up</button>
   </div>
 
-  <button id="expiryBtn">⚠️ Near Expiry</button>
-  <button id="recipesBtn">🍳 Recipe Suggestions</button>
-  <button id="analyticsBtn">📊 Analytics & Stats</button>
-
-  <button id="trashBtn" class="delete">🗑️ Trash / Deleted Items</button>
-  <button id="clearTrashBtn" class="delete">🔥 Clear All Trash</button>
-
+  <!-- Shown when logged in -->
+  <div id="profileSection" style="display:none; flex-direction:column; gap:12px; text-align:center;">
+    <div id="profileAvatar" style="font-size:40px;">🐶</div>
+    <div id="profileName" style="font-weight:700; font-size:16px; margin-top:4px;">User</div>
+    <div id="profileEmail" style="font-size:13px; color:#666;">user@example.com</div>
+    <button id="logoutBtn" class="delete">🚪 Logout</button>
+  </div>
 </div>
 
 <div class="main">
@@ -220,7 +215,31 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
     <div id="dailyReminders"></div>
   </div>
 </div>
+  <!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
+  // Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCdmGC5ys8KA97g4vQ19eOJTLLP_4v3G-k",
+    authDomain: "fridge-server.firebaseapp.com",
+    projectId: "fridge-server",
+    storageBucket: "fridge-server.firebasestorage.app",
+    messagingSenderId: "930593873346",
+    appId: "1:930593873346:web:de19a9fafb4b482f228a5b",
+    measurementId: "G-K65J2627HB"
+  };
+
+  // Init Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // make these available to your existing script
+  window.FM_FIREBASE = { auth, db };
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // --- CONFIG (keeps your old code intact while letting us disable backend push safely) ---
@@ -677,6 +696,61 @@ const emailInput = document.getElementById('emailInput');
 const avatarSelect = document.getElementById('avatarSelect');
 const saveProfileBtn = document.getElementById('saveProfileBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+
+  // --- Firebase Login Integration ---
+const { auth, db } = window.FM_FIREBASE;
+const loginForm = document.getElementById("loginForm");
+const userInfo = document.getElementById("userInfo");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const loginBtn = document.getElementById("loginBtn");
+const signupBtn = document.getElementById("signupBtn");
+const logoutBtnFb = document.getElementById("logoutBtn");
+
+import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
+  from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+
+// Auto switch UI if logged in/out
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginForm.style.display = "none";
+    userInfo.style.display = "flex";
+    profileEmail.textContent = user.email;
+    userProfile.email = user.email;   // keep your existing code happy
+    loadUserData();
+    renderCurrentPanel();
+  } else {
+    loginForm.style.display = "flex";
+    userInfo.style.display = "none";
+    profileEmail.textContent = "guest@example.com";
+  }
+});
+
+// Login button
+loginBtn.onclick = () => {
+  signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
+    .then(() => showToast("Logged in ✅"))
+    .catch(err => showToast("Login failed ❌ " + err.message));
+};
+
+// Signup button
+signupBtn.onclick = () => {
+  createUserWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
+    .then(() => showToast("Account created 🎉"))
+    .catch(err => showToast("Signup failed ❌ " + err.message));
+};
+
+// Logout
+logoutBtnFb.onclick = () => {
+  signOut(auth).then(() => {
+    showToast("Logged out 🚪");
+    allItems = [];
+    trash = [];
+    saveUserData();
+    renderCurrentPanel();
+  });
+};
+
 
 // Load profile from localStorage
 let userProfile = JSON.parse(localStorage.getItem('userProfile') || 
