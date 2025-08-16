@@ -610,17 +610,33 @@ function _markSlotRan(slot){
   const k=_todayKey(`ran-${slot}`); 
   localStorage.setItem(k,'1'); 
 }
-function _maybeRunTwiceDaily(){
+function _maybeRunTwiceDaily() {
   const now = new Date();
   const hh = now.getHours();
   const mm = now.getMinutes();
-  // Slots: 06:00 and 12:00 local time
-  if (hh===6 && mm===0 && _shouldRunSlot('06')) { scheduleExpiryNotifications(); _markSlotRan('06'); }
-  if (hh===12 && mm===0 && _shouldRunSlot('12')) { scheduleExpiryNotifications(); _markSlotRan('12'); }
-  // Reset markers shortly after midnight
-  if (hh===0 && mm<5){ localStorage.removeItem(_todayKey('ran-06')); localStorage.removeItem(_todayKey('ran-12')); }
+
+  // 🌅 Morning slot
+  if (hh === 6 && mm === 0 && _shouldRunSlot('06')) {
+    notifyDevice("FridgeMind", "🌅 Morning check! Review near expiry items.");
+    scheduleExpiryNotifications();
+    _markSlotRan('06');
+  }
+
+  // ☀️ Midday slot
+  if (hh === 12 && mm === 0 && _shouldRunSlot('12')) {
+    notifyDevice("FridgeMind", "☀️ Midday check! Don’t forget your fridge items.");
+    scheduleExpiryNotifications();
+    _markSlotRan('12');
+  }
+
+  // reset flags after midnight
+  if (hh === 0 && mm < 5) {
+    localStorage.removeItem(_todayKey('ran-06'));
+    localStorage.removeItem(_todayKey('ran-12'));
+  }
 }
 setInterval(_maybeRunTwiceDaily, 60*1000);
+
 
 // --- Push Subscription (kept in file but disabled by FM_CONFIG.ENABLE_BACKEND_PUSH) ---
 async function registerPush() {
