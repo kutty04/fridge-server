@@ -740,16 +740,6 @@ signupBtn.onclick = () => {
     .catch(err => showToast("Signup failed ❌ " + err.message));
 };
 
-// Logout
-logoutBtnFb.onclick = () => {
-  signOut(auth).then(() => {
-    showToast("Logged out 🚪");
-    allItems = [];
-    trash = [];
-    saveUserData();
-    renderCurrentPanel();
-  });
-};
 
 
 // Load profile from localStorage
@@ -766,6 +756,35 @@ function renderProfile(){
 }
 renderProfile();
 loadUserData();
+  renderProfile();
+loadUserData();
+
+// --- Unified Logout (Firebase + Local Fallback) ---
+const logoutBtn = document.getElementById("logoutBtn");
+
+logoutBtn.onclick = () => {
+  if (auth.currentUser) {
+    // Firebase logout
+    signOut(auth).then(() => {
+      showToast("Logged out from Firebase 🚪");
+      allItems = [];
+      trash = [];
+      saveUserData();
+      renderCurrentPanel();
+    });
+  } else {
+    // Local fallback logout
+    localStorage.removeItem('userProfile');
+    userProfile = {name:"Guest", email:"guest@example.com", avatar:"🐶"};
+    allItems = [];
+    trash = [];
+    renderProfile();
+    loadUserData();
+    renderCurrentPanel();
+    showToast("Logged out (Local) 🚪");
+  }
+};
+
 
 // Toggle profile panel
 profileBtn.onclick = () => {
@@ -784,17 +803,7 @@ saveProfileBtn.onclick = () => {
   showToast("Profile saved ✅");
 };
 
-// Logout
-logoutBtn.onclick = () => {
-  localStorage.removeItem('userProfile');
-  userProfile = {name:"Guest", email:"guest@example.com", avatar:"🐶"};
-  allItems = [];
-  trash = [];
-  renderProfile();
-  loadUserData();
-  renderCurrentPanel();
-  showToast("Logged out 🚪");
-};
+
 
 // --- Clear Trash ---
 const clearTrashBtn = document.getElementById('clearTrashBtn');
