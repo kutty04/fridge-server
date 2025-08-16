@@ -122,7 +122,7 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
     border-radius: 0;
   }
   #profilePanel input,
-   #profilePanel select,
+  #profilePanel select,
   #profilePanel button {
     width: 100%;
     margin-bottom: 8px;
@@ -147,59 +147,6 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
     width: 100%;
   }
 }
-/* ==== HOTFIX: layout + spacing + heading wrap ==== */
-*, *::before, *::after { box-sizing: border-box; }
-
-h1 {
-  margin: 10px 0 18px;
-  line-height: 1.15;
-  word-break: normal;
-  white-space: normal;
-  text-align: center;
-}
-
-/* Sidebar should not push content unless opened */
-body:not(.sidebar-open) .sidebar { left: -240px; }
-body:not(.sidebar-open) .main { margin-left: 0; }
-
-/* When menu is open, then push main */
-body.sidebar-open .sidebar { left: 20px; }
-body.sidebar-open .main { margin-left: 240px; }
-
-.main {
-  /* stop the content from hugging the left edge and breaking the H1 into columns */
-  align-items: stretch;          /* was: center */
-  max-width: 100%;
-  padding: 0 16px;
-}
-
-/* Keep content nicely centered without squishing */
-.fm-container {
-  max-width: 840px;              /* nice readable width */
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Input row should not wrap weirdly on desktop */
-.row { flex-wrap: nowrap; }
-@media (max-width: 700px) { .row { flex-wrap: wrap; } }
-
-/* Cards and lists expand to container width */
-.card, .items, #analyticsPanel { max-width: 840px; width: 100%; }
-
-/* Make sure the floating carrot/stripe doesn’t overlay text (if you had any) */
-img, svg { max-width: 100%; height: auto; }
-
-/* Button in header */
-.test-notif { top: 20px; right: 20px; }
-
-/* Fix accidental full-height stripe on the left edge */
-body { background-clip: padding-box; }
-@media (max-width: 420px) {
-  h1 { font-size: 18px; }
-  .row { flex-direction: column; }
-  input[type="text"], input[type="date"], button.add-btn { width: 100%; }
-}
 
 
 </style>
@@ -219,53 +166,41 @@ body { background-clip: padding-box; }
     <button data-cat="Grains">🍚 Grains</button>
     <button data-cat="Other">🍲 Other</button>
   </div>
-  <button id="trashBtn">🗑️ Trash</button>
-<button id="clearTrashBtn" class="delete">🧹 Clear Trash</button>
 
-<!-- PROFILE SECTION -->
-<button id="profileBtn">👤 Profile</button>
-<div id="profilePanel" style="display:none; flex-direction:column; gap:12px; padding:10px; background:#fff; border-radius:12px; margin-top:10px;">
-
-  <!-- Shown when NOT logged in -->
-  <div id="loginSection" style="display:flex; flex-direction:column; gap:8px;">
-    <h4>🔑 Login</h4>
-    <input id="loginEmail" type="text" placeholder="Email 📧" />
-    <input id="loginPassword" type="password" placeholder="Password 🔒" />
-    <button id="loginBtn" class="secondary">➡️ Login</button>
-
-    <h4>🆕 Sign Up</h4>
-    <input id="signupEmail" type="text" placeholder="Email 📧" />
-    <input id="signupPassword" type="password" placeholder="Password 🔒" />
-    <button id="signupBtn" class="secondary">✍️ Sign Up</button>
+  <!-- PROFILE SECTION -->
+  <button id="profileBtn">👤 Profile</button>
+  <div id="profilePanel" style="display:none; flex-direction:column; gap:12px; padding:10px; background:#fff; border-radius:12px; margin-top:10px;">
+    <div style="text-align:center;">
+      <div id="profileAvatar" style="font-size:40px;">🐶</div>
+      <div id="profileName" style="font-weight:700; font-size:16px; margin-top:4px;">Guest</div>
+      <div id="profileEmail" style="font-size:13px; color:#666;">guest@example.com</div>
+    </div>
+    <input id="nameInput" type="text" placeholder="Enter your name 📝" />
+    <input id="emailInput" type="text" placeholder="Enter email 📧" />
+    <select id="avatarSelect">
+      <option value="🐶">🐶 Dog</option>
+      <option value="🐱">🐱 Cat</option>
+      <option value="🐰">🐰 Rabbit</option>
+      <option value="🐦">🐦 Bird</option>
+      <option value="🐢">🐢 Turtle</option>
+    </select>
+    <button id="saveProfileBtn" class="secondary">💾 Save Profile</button>
+    <button id="logoutBtn" class="delete">🚪 Logout</button>
   </div>
 
-  <!-- Shown when logged in -->
-  <!-- Shown when logged in -->
-<div id="profileSection" style="display:none; flex-direction:column; gap:12px; text-align:center;">
-  <div id="profileAvatar" style="font-size:40px;">🐶</div>
-  <div id="profileName" style="font-weight:700; font-size:16px; margin-top:4px;">User</div>
-  <div id="profileEmail" style="font-size:13px; color:#666;">user@example.com</div>
+  <button id="expiryBtn">⚠️ Near Expiry</button>
+  <button id="recipesBtn">🍳 Recipe Suggestions</button>
+  <button id="analyticsBtn">📊 Analytics & Stats</button>
 
-  <!-- Editable fields -->
-  <input id="nameInput" type="text" placeholder="Your name 📝">
-  <input id="emailInput" type="email" placeholder="Your email 📧">
-  <select id="avatarSelect">
-    <option>🐶</option>
-    <option>🐱</option>
-    <option>🐰</option>
-    <option>🐼</option>
-  </select>
-  <button id="saveProfileBtn" class="secondary">💾 Save Profile</button>
+  <button id="trashBtn" class="delete">🗑️ Trash / Deleted Items</button>
+  <button id="clearTrashBtn" class="delete">🔥 Clear All Trash</button>
 
-  <button id="logoutBtn" class="delete">🚪 Logout</button>
 </div>
 
-
 <div class="main">
-  <div class="fm-container">
-    <h1>🥕 FridgeMind — Track Items</h1>
+  <h1>🥕 FridgeMind — Track Items</h1>
 
-    <div class="card">
+  <div class="card">
     <div class="row">
       <input id="itemName" type="text" placeholder="Enter item name 🍅" />
       <input id="expiryDate" type="date" />
@@ -285,31 +220,7 @@ body { background-clip: padding-box; }
     <div id="dailyReminders"></div>
   </div>
 </div>
-  <!-- Firebase SDKs -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
 
-  // Your Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCdmGC5ys8KA97g4vQ19eOJTLLP_4v3G-k",
-    authDomain: "fridge-server.firebaseapp.com",
-    projectId: "fridge-server",
-    storageBucket: "fridge-server.firebasestorage.app",
-    messagingSenderId: "930593873346",
-    appId: "1:930593873346:web:de19a9fafb4b482f228a5b",
-    measurementId: "G-K65J2627HB"
-  };
-
-  // Init Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  // make these available to your existing script
-  window.FM_FIREBASE = { auth, db };
-</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // --- CONFIG (keeps your old code intact while letting us disable backend push safely) ---
@@ -484,57 +395,14 @@ function showToast(msg){
   document.body.appendChild(t);
   setTimeout(()=>t.remove(),2500);
 }
-async function loadUserData() {
-  const emailKey = auth.currentUser?.email || userProfile.email;
-
-  if (auth.currentUser) {
-    try {
-      const docRef = doc(db, "users", auth.currentUser.uid);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        allItems = data.allItems || [];
-        trash = data.trash || [];
-        console.log("✅ Loaded from Firestore", data);
-      } else {
-        allItems = [];
-        trash = [];
-      }
-    } catch (err) {
-      console.error("Firestore load error:", err);
-      // fallback
-      allItems = JSON.parse(localStorage.getItem(`allItems_${emailKey}`) || '[]');
-      trash = JSON.parse(localStorage.getItem(`trash_${emailKey}`) || '[]');
-    }
-  } else {
-    // not logged in → fallback localStorage
-    allItems = JSON.parse(localStorage.getItem(`allItems_${emailKey}`) || '[]');
-    trash = JSON.parse(localStorage.getItem(`trash_${emailKey}`) || '[]');
-  }
+function loadUserData() {
+  allItems = JSON.parse(localStorage.getItem(`allItems_${userProfile.email}`) || '[]');
+  trash = JSON.parse(localStorage.getItem(`trash_${userProfile.email}`) || '[]');
 }
-
-      
-async function saveUserData() {
-  const emailKey = auth.currentUser?.email || userProfile.email;
-
-  if (auth.currentUser) {
-    try {
-      const docRef = doc(db, "users", auth.currentUser.uid);
-      await setDoc(docRef, { allItems, trash });
-      console.log("✅ Saved to Firestore");
-    } catch (err) {
-      console.error("Firestore save error:", err);
-      // fallback
-      localStorage.setItem(`allItems_${emailKey}`, JSON.stringify(allItems));
-      localStorage.setItem(`trash_${emailKey}`, JSON.stringify(trash));
-    }
-  } else {
-    // not logged in → fallback localStorage
-    localStorage.setItem(`allItems_${emailKey}`, JSON.stringify(allItems));
-    localStorage.setItem(`trash_${emailKey}`, JSON.stringify(trash));
-  }
+function saveUserData() {
+  localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
+  localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
 }
-
 
 // --- NOTIFICATION QUEUE + PERMISSION (Fix #1) ---
 const _notifQueue = [];
@@ -771,10 +639,8 @@ categoriesBtn.onclick=()=>{ categorySubmenu.style.display=categorySubmenu.style.
 categorySubmenu.querySelectorAll('button[data-cat]').forEach(btn=>{
   btn.onclick=()=>{ const cat=btn.getAttribute('data-cat'); currentPanel='categories'; renderCurrentPanel(); itemList.innerHTML=''; allItems.filter(i=>!i.deleted && pantry[i.key]?.category===cat).forEach(i=>itemList.appendChild(renderItem(i))); };
 });
-toggleMenu.onclick = () => {
-  // Toggle the global page state rather than permanently shifting .main
-  document.body.classList.toggle('sidebar-open');
-};
+toggleMenu.onclick=()=>{ sidebar.classList.toggle('show'); }
+toggleAnalytics.onclick=()=>{ analyticsContent.style.display=analyticsContent.style.display==='flex'?'none':'flex'; }
 
 // --- Test Notification (Mobile Safe Fix) ---
 testNotifBtn.onclick = async () => {
@@ -809,53 +675,8 @@ const profileEmail = document.getElementById('profileEmail');
 const nameInput = document.getElementById('nameInput');
 const emailInput = document.getElementById('emailInput');
 const avatarSelect = document.getElementById('avatarSelect');
-
-
-
-  // --- Firebase Login Integration ---
-const { auth, db } = window.FM_FIREBASE;
-const loginForm = document.getElementById("loginSection");
-const userInfo = document.getElementById("profileSection");
-const loginEmail = document.getElementById("loginEmail");
-const loginPassword = document.getElementById("loginPassword");
-const loginBtn = document.getElementById("loginBtn");
-const signupBtn = document.getElementById("signupBtn");
-
-
-import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
-  from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
-
-// Auto switch UI if logged in/out
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    loginForm.style.display = "none";
-    userInfo.style.display = "flex";
-    profileEmail.textContent = user.email;
-    userProfile.email = user.email;   // keep your existing code happy
-    loadUserData();
-    renderCurrentPanel();
-  } else {
-    loginForm.style.display = "flex";
-    userInfo.style.display = "none";
-    profileEmail.textContent = "guest@example.com";
-  }
-});
-
-// Login button
-loginBtn.onclick = () => {
-  signInWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
-    .then(() => showToast("Logged in ✅"))
-    .catch(err => showToast("Login failed ❌ " + err.message));
-};
-
-// Signup button
-signupBtn.onclick = () => {
-  createUserWithEmailAndPassword(auth, loginEmail.value, loginPassword.value)
-    .then(() => showToast("Account created 🎉"))
-    .catch(err => showToast("Signup failed ❌ " + err.message));
-};
-
-
+const saveProfileBtn = document.getElementById('saveProfileBtn');
+const logoutBtn = document.getElementById('logoutBtn');
 
 // Load profile from localStorage
 let userProfile = JSON.parse(localStorage.getItem('userProfile') || 
@@ -865,63 +686,52 @@ function renderProfile(){
   profileName.textContent = userProfile.name;
   profileEmail.textContent = userProfile.email;
   profileAvatar.textContent = userProfile.avatar;
-
-  // Only update inputs if they exist
-  if (window.nameInput) nameInput.value = userProfile.name;
-  if (window.emailInput) emailInput.value = userProfile.email;
-  if (window.avatarSelect) avatarSelect.value = userProfile.avatar;
+  nameInput.value = userProfile.name;
+  emailInput.value = userProfile.email;
+  avatarSelect.value = userProfile.avatar;
 }
-
-
-
-// --- Unified Logout (Firebase + Local Fallback) ---
-const logoutBtn = document.getElementById("logoutBtn");
-
-logoutBtn.onclick = () => {
-  if (auth.currentUser) {
-    // Firebase logout
-    signOut(auth).then(() => {
-      showToast("Logged out from Firebase 🚪");
-      allItems = [];
-      trash = [];
-      saveUserData();
-      renderCurrentPanel();
-    });
-  } else {
-    // Local fallback logout
-    localStorage.removeItem('userProfile');
-    userProfile = {name:"Guest", email:"guest@example.com", avatar:"🐶"};
-    allItems = [];
-    trash = [];
-    renderProfile();
-    loadUserData();
-    renderCurrentPanel();
-    showToast("Logged out (Local) 🚪");
-  }
-};
-
+renderProfile();
+loadUserData();
 
 // Toggle profile panel
 profileBtn.onclick = () => {
   profilePanel.style.display = profilePanel.style.display === 'flex' ? 'none' : 'flex';
 };
 
+// Save profile
+saveProfileBtn.onclick = () => {
+  userProfile.name = nameInput.value || "Guest";
+  userProfile.email = emailInput.value || "guest@example.com";
+  userProfile.avatar = avatarSelect.value;
+  localStorage.setItem('userProfile', JSON.stringify(userProfile));
+  renderProfile();
+  loadUserData();       // load items for this email
+  renderCurrentPanel(); // refresh UI
+  showToast("Profile saved ✅");
+};
 
-
+// Logout
+logoutBtn.onclick = () => {
+  localStorage.removeItem('userProfile');
+  userProfile = {name:"Guest", email:"guest@example.com", avatar:"🐶"};
+  allItems = [];
+  trash = [];
+  renderProfile();
+  loadUserData();
+  renderCurrentPanel();
+  showToast("Logged out 🚪");
+};
 
 // --- Clear Trash ---
 const clearTrashBtn = document.getElementById('clearTrashBtn');
-if (clearTrashBtn) {
-  clearTrashBtn.onclick = () => {
-    if(confirm("Are you sure you want to permanently clear all trash items?")) {
-      trash = [];
-      saveUserData();
-      renderCurrentPanel();
-      showToast("Trash cleared 🧹");
-    }
-  };
-}
-
+clearTrashBtn.onclick = () => {
+  if(confirm("Are you sure you want to permanently clear all trash items?")) {
+    trash = [];
+    saveUserData();
+    renderCurrentPanel();
+    showToast("Trash cleared 🧹");
+  }
+};
 
 // --- Init ---
 ensureNotificationPermission().then(()=>{
@@ -1021,6 +831,9 @@ if (FM_CONFIG.ENABLE_BACKEND_PUSH) {
 
 </body>
 </html>
+
+
+
 
 
 
