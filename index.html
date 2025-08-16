@@ -113,6 +113,41 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
     flex-direction: column;
   }
 }
+  @media (max-width: 600px) {
+  /* Profile panel: full width on mobile */
+  #profilePanel {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    border-radius: 0;
+  }
+  #profilePanel input,
+  #profilePanel select,
+  #profilePanel button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  /* Analytics panel: full width and stacked */
+  .analytics-panel {
+    width: 100% !important;
+    padding: 12px;
+  }
+  .analytics-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .analytics-card {
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Reminder cards full width */
+  .reminder-card {
+    width: 100%;
+  }
+}
+
 
 </style>
 </head>
