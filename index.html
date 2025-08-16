@@ -122,6 +122,8 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
     border-radius: 0;
   }
   #profilePanel input,
+    <button id="saveProfileBtn" class="secondary">💾 Save Profile</button>
+
   #profilePanel select,
   #profilePanel button {
     width: 100%;
@@ -732,7 +734,7 @@ const profileEmail = document.getElementById('profileEmail');
 const nameInput = document.getElementById('nameInput');
 const emailInput = document.getElementById('emailInput');
 const avatarSelect = document.getElementById('avatarSelect');
-const saveProfileBtn = document.getElementById('saveProfileBtn');
+
 
 
   // --- Firebase Login Integration ---
@@ -792,10 +794,7 @@ function renderProfile(){
   emailInput.value = userProfile.email;
   avatarSelect.value = userProfile.avatar;
 }
-renderProfile();
-loadUserData();
-  renderProfile();
-loadUserData();
+
 
 // --- Unified Logout (Firebase + Local Fallback) ---
 const logoutBtn = document.getElementById("logoutBtn");
@@ -829,17 +828,6 @@ profileBtn.onclick = () => {
   profilePanel.style.display = profilePanel.style.display === 'flex' ? 'none' : 'flex';
 };
 
-// Save profile
-saveProfileBtn.onclick = () => {
-  userProfile.name = nameInput.value || "Guest";
-  userProfile.email = emailInput.value || "guest@example.com";
-  userProfile.avatar = avatarSelect.value;
-  localStorage.setItem('userProfile', JSON.stringify(userProfile));
-  renderProfile();
-  loadUserData();       // load items for this email
-  renderCurrentPanel(); // refresh UI
-  showToast("Profile saved ✅");
-};
 
 
 
