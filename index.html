@@ -254,17 +254,94 @@ const pantry = {
   "roti": { emoji:"🥯", recipes:["Reheat Roti","Make Rolls"], expiry:2, category:"Other" },
   "chapati": { emoji:"🥯", recipes:["Reheat Chapati","Make Rolls"], expiry:2, category:"Other" }
 };
-/* Aliases (kept original + added variants for your 10 items) */
+/* Aliases (English + Tamil + Hindi + Telugu) */
 const aliases = { 
+  // Tomato
   "tomatoes":"tomato",
+  "தக்காளி":"tomato",   // Tamil
+  "टमाटर":"tomato",     // Hindi
+  "tamatar":"tomato",
+  "టమోటా":"tomato",     // Telugu
+
+  // Onion
+  "onions":"onion",
+  "வெங்காயம்":"onion",
+  "प्याज":"onion",
+  "pyaz":"onion",
+  "ఉల్లి":"onion",
+
+  // Potato
   "potatoes":"potato",
+  "உருளைக்கிழங்கு":"potato",
+  "आलू":"potato",
+  "aloo":"potato",
+  "బంగాళదుంప":"potato",
+
+  // Carrot
+  "காரட்":"carrot",
+  "गाजर":"carrot",
+  "gajar":"carrot",
+  "క్యారెట్":"carrot",
+
+  // Milk
+  "பால்":"milk",
+  "doodh":"milk",
+  "दूध":"milk",
+  "పాలు":"milk",
+
+  // Curd
+  "தயிர்":"curd",
+  "दही":"curd",
+  "curd":"curd",
+  "perugu":"curd",
+  "తయిర్":"curd",
+
+  // Rice
+  "அரிசி":"rice",
+  "चावल":"rice",
+  "chawal":"rice",
+  "బియ్యం":"rice",
+
+  // Egg
+  "முட்டை":"egg",
+  "anda":"egg",
+  "अंडा":"egg",
+  "గుడ్డు":"egg",
+
+  // Paneer
+  "பனீர்":"paneer",
+  "paneer":"paneer",
+  "पनीर":"paneer",
+  "పనీర్":"paneer",
+
+  // Mango
+  "மாம்பழம்":"mango",
+  "aam":"mango",
+  "आम":"mango",
+  "మామిడి":"mango",
+
+  // Apple
+  "ஆப்பிள்":"apple",
+  "seb":"apple",
+  "सेब":"apple",
+  "ఆపిల్":"apple",
+
+  // Leftovers
   "idly batter":"idli batter",
   "idlly batter":"idli batter",
   "dosai batter":"dosa batter",
+  "dosa maavu":"dosa batter",
+  "சாம்பார்":"sambar",
+  "rasam":"rasam",
+  "ரசம்":"rasam",
+  "दाल":"dal tadka",
+  "राजमा":"rajma",
+  "చపాతీ":"chapati",
+  "rotis":"roti",
   "chapathi":"chapati",
-  "chapatti":"chapati",
-  "rotis":"roti"
+  "chapatti":"chapati"
 };
+
 
 let allItems = JSON.parse(localStorage.getItem('allItems')||'[]');
 let trash = JSON.parse(localStorage.getItem('trash')||'[]');
@@ -359,33 +436,106 @@ function playReminderSound(){
   }catch(e){}
 }
 
-// --- Render Single Item ---
+// --- Render Single Item (with multiple recipes dropdown) ---
 function renderItem(obj){
-  const card=document.createElement('div'); card.className='item-card';
-  const info=document.createElement('div'); info.className='info';
+  const card=document.createElement('div'); 
+  card.className='item-card';
+  const info=document.createElement('div'); 
+  info.className='info';
+
   const dleft = daysUntil(obj.expiry);
-  if(dleft<=3 && !obj.deleted){ const b=document.createElement('div'); b.className='badge'; b.textContent=`⚠️ Near Expiry (${dleft}d)`; info.appendChild(b); }
-  const nameLine=document.createElement('div'); nameLine.className='name'; 
-  const emoji = pantry[obj.key]?.emoji || ''; 
-  nameLine.textContent = `${emoji} ${obj.name}`; info.appendChild(nameLine);
-  const expLine=document.createElement('div'); expLine.className='expiry'; expLine.textContent=`Expires: ${obj.expiry}`; info.appendChild(expLine);
-  if(obj.key && pantry[obj.key]?.recipes && dleft<=3 && !obj.deleted){
-    const rec = pantry[obj.key].recipes[0]; // first recipe
-    const link = document.createElement('a'); link.href=`https://www.youtube.com/results?search_query=${rec.replace(/ /g,'+')}`; link.target="_blank"; link.className='suggest'; link.textContent=`💡 Try: ${rec}`; info.appendChild(link);
+
+  // Badge if near expiry
+  if(dleft<=3 && !obj.deleted){ 
+    const b=document.createElement('div'); 
+    b.className='badge'; 
+    b.textContent=`⚠️ Near Expiry (${dleft}d)`; 
+    info.appendChild(b); 
   }
+
+  // Item name
+  const nameLine=document.createElement('div'); 
+  nameLine.className='name'; 
+  const emoji = pantry[obj.key]?.emoji || ''; 
+  nameLine.textContent = `${emoji} ${obj.name}`; 
+  info.appendChild(nameLine);
+
+  // Expiry date
+  const expLine=document.createElement('div'); 
+  expLine.className='expiry'; 
+  expLine.textContent=`Expires: ${obj.expiry}`; 
+  info.appendChild(expLine);
+
+  // 🔽 Multiple recipes dropdown
+  if(obj.key && pantry[obj.key]?.recipes && pantry[obj.key].recipes.length > 0 && !obj.deleted){
+    const toggle = document.createElement('button');
+    toggle.textContent = "▼ Recipes";
+    toggle.className = "secondary";
+    toggle.style.marginTop = "6px";
+
+    const recipeDiv = document.createElement('div');
+    recipeDiv.style.display = "none";
+    recipeDiv.style.flexDirection = "column";
+    recipeDiv.style.gap = "4px";
+    recipeDiv.style.marginTop = "4px";
+
+    pantry[obj.key].recipes.forEach(r => {
+      const link = document.createElement('a');
+      link.href = `https://www.youtube.com/results?search_query=${r.replace(/ /g,'+')}`;
+      link.target = "_blank";
+      link.className = 'suggest';
+      link.textContent = `💡 ${r}`;
+      recipeDiv.appendChild(link);
+    });
+
+    toggle.onclick = () => {
+      recipeDiv.style.display = recipeDiv.style.display === "none" ? "flex" : "none";
+    };
+
+    info.appendChild(toggle);
+    info.appendChild(recipeDiv);
+  }
+
   card.appendChild(info);
 
-  const btns=document.createElement('div'); btns.style.display='flex'; btns.style.gap='6px'; btns.style.flexDirection='column';
+  // Buttons (delete/restore)
+  const btns=document.createElement('div'); 
+  btns.style.display='flex'; 
+  btns.style.gap='6px'; 
+  btns.style.flexDirection='column';
+
   if(!obj.deleted){ 
-    const del=document.createElement('button'); del.className='delete-btn'; del.textContent='🗑️ Delete'; del.onclick=()=>{ obj.deleted=true; trash.push(obj); allItems=allItems.filter(i=>i!==obj); saveUserData(); renderCurrentPanel(); showToast('Item moved to trash 🗑️'); };
+    const del=document.createElement('button'); 
+    del.className='delete-btn'; 
+    del.textContent='🗑️ Delete'; 
+    del.onclick=()=>{ 
+      obj.deleted=true; 
+      trash.push(obj); 
+      allItems=allItems.filter(i=>i!==obj); 
+      saveUserData(); 
+      renderCurrentPanel(); 
+      showToast('Item moved to trash 🗑️'); 
+    };
     btns.appendChild(del);
   } else { 
-    const res=document.createElement('button'); res.className='restore-btn'; res.textContent='♻️ Restore'; res.onclick=()=>{ obj.deleted=false; allItems.push(obj); trash=trash.filter(i=>i!==obj); saveUserData(); renderCurrentPanel(); showToast('Item restored ♻️'); };
+    const res=document.createElement('button'); 
+    res.className='restore-btn'; 
+    res.textContent='♻️ Restore'; 
+    res.onclick=()=>{ 
+      obj.deleted=false; 
+      allItems.push(obj); 
+      trash=trash.filter(i=>i!==obj); 
+      saveUserData(); 
+      renderCurrentPanel(); 
+      showToast('Item restored ♻️'); 
+    };
     btns.appendChild(res);
   }
+
   card.appendChild(btns);
   return card;
 }
+
 
 // --- Render Panels ---
 function renderCurrentPanel(){
