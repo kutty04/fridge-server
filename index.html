@@ -414,14 +414,52 @@ function showToast(msg){
   document.body.appendChild(t);
   setTimeout(()=>t.remove(),2500);
 }
-function loadUserData() {
-  allItems = JSON.parse(localStorage.getItem(`allItems_${userProfile.email}`) || '[]');
-  trash = JSON.parse(localStorage.getItem(`trash_${userProfile.email}`) || '[]');
+async function loadUserData() {
+  if (auth.currentUser) {
+    try {
+      const docRef = doc(db, "users", auth.currentUser.uid);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        allItems = data.allItems || [];
+        trash = data.trash || [];
+        console.log("✅ Loaded from Firestore", data);
+      } else {
+        allItems = [];
+        trash = [];
+      }
+    } catch (err) {
+      console.error("Firestore load error:", err);
+      // fallback
+      allItems = JSON.parse(localStorage.getItem(`allItems_${userProfile.email}`) || '[]');
+      trash = JSON.parse(localStorage.getItem(`trash_${userProfile.email}`) || '[]');
+    }
+  } else {
+    // not logged in → fallback localStorage
+    allItems = JSON.parse(localStorage.getItem(`allItems_${userProfile.email}`) || '[]');
+    trash = JSON.parse(localStorage.getItem(`trash_${userProfile.email}`) || '[]');
+  }
 }
-function saveUserData() {
-  localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
-  localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
+
+async function saveUserData() {
+  if (auth.currentUser) {
+    try {
+      const docRef = doc(db, "users", auth.currentUser.uid);
+      await setDoc(docRef, { allItems, trash });
+      console.log("✅ Saved to Firestore");
+    } catch (err) {
+      console.error("Firestore save error:", err);
+      // fallback
+      localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
+      localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
+    }
+  } else {
+    // not logged in → fallback localStorage
+    localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
+    localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
+  }
 }
+
 
 // --- NOTIFICATION QUEUE + PERMISSION (Fix #1) ---
 const _notifQueue = [];
