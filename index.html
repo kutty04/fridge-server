@@ -477,7 +477,7 @@ if (Notification.permission !== "granted") {
     notifyDevice("FridgeMind", `${name} is near expiry ⚠️ (${dleft} day${dleft===1?'':'s'})`);
   }
 }
-
+};
 
 // --- Panel Switch ---
 homeBtn.onclick=()=>{ currentPanel='home'; renderCurrentPanel(); }
