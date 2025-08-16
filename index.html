@@ -449,7 +449,7 @@ async function registerPush() {
       applicationServerKey: urlBase64ToUint8Array(publicKey)
     });
 
-    await fetch("http://localhost:4000/subscribe", {
+    await fetch("https://fridge-backend.onrender.com", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
