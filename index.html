@@ -695,17 +695,17 @@ const nameInput = document.getElementById('nameInput');
 const emailInput = document.getElementById('emailInput');
 const avatarSelect = document.getElementById('avatarSelect');
 const saveProfileBtn = document.getElementById('saveProfileBtn');
-const logoutBtn = document.getElementById('logoutBtn');
+
 
   // --- Firebase Login Integration ---
 const { auth, db } = window.FM_FIREBASE;
-const loginForm = document.getElementById("loginForm");
-const userInfo = document.getElementById("userInfo");
+const loginForm = document.getElementById("loginSection");
+const userInfo = document.getElementById("profileSection");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
 const loginBtn = document.getElementById("loginBtn");
 const signupBtn = document.getElementById("signupBtn");
-const logoutBtnFb = document.getElementById("logoutBtn");
+
 
 import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } 
   from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
