@@ -417,6 +417,8 @@ function showToast(msg){
   setTimeout(()=>t.remove(),2500);
 }
 async function loadUserData() {
+  const emailKey = auth.currentUser?.email || userProfile.email;
+
   if (auth.currentUser) {
     try {
       const docRef = doc(db, "users", auth.currentUser.uid);
@@ -433,17 +435,20 @@ async function loadUserData() {
     } catch (err) {
       console.error("Firestore load error:", err);
       // fallback
-      allItems = JSON.parse(localStorage.getItem(`allItems_${userProfile.email}`) || '[]');
-      trash = JSON.parse(localStorage.getItem(`trash_${userProfile.email}`) || '[]');
+      allItems = JSON.parse(localStorage.getItem(`allItems_${emailKey}`) || '[]');
+      trash = JSON.parse(localStorage.getItem(`trash_${emailKey}`) || '[]');
     }
   } else {
     // not logged in → fallback localStorage
-    allItems = JSON.parse(localStorage.getItem(`allItems_${userProfile.email}`) || '[]');
-    trash = JSON.parse(localStorage.getItem(`trash_${userProfile.email}`) || '[]');
+    allItems = JSON.parse(localStorage.getItem(`allItems_${emailKey}`) || '[]');
+    trash = JSON.parse(localStorage.getItem(`trash_${emailKey}`) || '[]');
   }
 }
 
+      
 async function saveUserData() {
+  const emailKey = auth.currentUser?.email || userProfile.email;
+
   if (auth.currentUser) {
     try {
       const docRef = doc(db, "users", auth.currentUser.uid);
@@ -452,13 +457,13 @@ async function saveUserData() {
     } catch (err) {
       console.error("Firestore save error:", err);
       // fallback
-      localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
-      localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
+      localStorage.setItem(`allItems_${emailKey}`, JSON.stringify(allItems));
+      localStorage.setItem(`trash_${emailKey}`, JSON.stringify(trash));
     }
   } else {
     // not logged in → fallback localStorage
-    localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
-    localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
+    localStorage.setItem(`allItems_${emailKey}`, JSON.stringify(allItems));
+    localStorage.setItem(`trash_${emailKey}`, JSON.stringify(trash));
   }
 }
 
@@ -790,10 +795,13 @@ function renderProfile(){
   profileName.textContent = userProfile.name;
   profileEmail.textContent = userProfile.email;
   profileAvatar.textContent = userProfile.avatar;
-  nameInput.value = userProfile.name;
-  emailInput.value = userProfile.email;
-  avatarSelect.value = userProfile.avatar;
+
+  // Only update inputs if they exist
+  if (window.nameInput) nameInput.value = userProfile.name;
+  if (window.emailInput) emailInput.value = userProfile.email;
+  if (window.avatarSelect) avatarSelect.value = userProfile.avatar;
 }
+
 
 
 // --- Unified Logout (Firebase + Local Fallback) ---
@@ -833,14 +841,17 @@ profileBtn.onclick = () => {
 
 // --- Clear Trash ---
 const clearTrashBtn = document.getElementById('clearTrashBtn');
-clearTrashBtn.onclick = () => {
-  if(confirm("Are you sure you want to permanently clear all trash items?")) {
-    trash = [];
-    saveUserData();
-    renderCurrentPanel();
-    showToast("Trash cleared 🧹");
-  }
-};
+if (clearTrashBtn) {
+  clearTrashBtn.onclick = () => {
+    if(confirm("Are you sure you want to permanently clear all trash items?")) {
+      trash = [];
+      saveUserData();
+      renderCurrentPanel();
+      showToast("Trash cleared 🧹");
+    }
+  };
+}
+
 
 // --- Init ---
 ensureNotificationPermission().then(()=>{
