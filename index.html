@@ -221,7 +221,8 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
   </div>
 </div>
 <!-- Firebase SDK -->
-<script type="module">
+<script type="module"><!-- DISABLED TEMPORARILY to fix UI; restore after
+
   // Import the Firebase functions you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } 
@@ -245,38 +246,31 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
   const auth = getAuth(app);
   const db = getFirestore(app);
 
- // Save to Firestore + localStorage
-async function saveUserData(email, allItems, trash) {
-  try {
-    await setDoc(doc(db, "users", email), { allItems, trash });
-  } catch (err) {
-    console.warn("⚠️ Firestore save failed, using localStorage only:", err);
-  }
-  // always keep localStorage updated
-  localStorage.setItem(`allItems_${email}`, JSON.stringify(allItems));
-  localStorage.setItem(`trash_${email}`, JSON.stringify(trash));
+  async function saveUserData(email, allItems, trash) {
+  await setDoc(doc(db, "users", email), { allItems, trash });
 }
 
-  import { getFirestore, collection, addDoc, getDocs, onSnapshot, setDoc, getDoc, doc } 
-        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+async function loadUserData(email) {
+  const snap = await getDoc(doc(db, "users", email));
+  if (snap.exists()) {
+    return snap.data();
+  } else {
+    return { allItems: [], trash: [] };
+  }
+}
 
+  signInWithEmailAndPassword(auth, email, password)
+  .then(async (userCredential) => {
+    const user = userCredential.user;
 
-  
-
-
- 
-
-    // Load saved data
-    const data = await loadUserData(user.email);
-    allItems = data.allItems;
-    trash = data.trash;
-    renderItems(); // (your function to refresh UI)
+    // Load saved data// (your function to refresh UI)
   })
   .catch((error) => {
     alert(error.message);
   });
 
-</script>
+
+END DISABLED --></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -452,7 +446,14 @@ function showToast(msg){
   document.body.appendChild(t);
   setTimeout(()=>t.remove(),2500);
 }
-
+function loadUserData() {
+  allItems = JSON.parse(localStorage.getItem(`allItems_${userProfile.email}`) || '[]');
+  trash = JSON.parse(localStorage.getItem(`trash_${userProfile.email}`) || '[]');
+}
+function saveUserData() {
+  localStorage.setItem(`allItems_${userProfile.email}`, JSON.stringify(allItems));
+  localStorage.setItem(`trash_${userProfile.email}`, JSON.stringify(trash));
+}
 
 // --- NOTIFICATION QUEUE + PERMISSION (Fix #1) ---
 const _notifQueue = [];
@@ -753,17 +754,12 @@ saveProfileBtn.onclick = async () => {
   userProfile.name = nameInput.value || "Guest";
   userProfile.email = emailInput.value || "guest@example.com";
   userProfile.avatar = avatarSelect.value;
-
-  localStorage.setItem("userProfile", JSON.stringify(userProfile));
-
-  const data = await loadUserData(userProfile.email);
-  allItems = data.allItems;
-  trash = data.trash;
-  renderCurrentPanel();   
+  
   renderProfile();
+  saveUserData();
+  renderCurrentPanel();
   showToast("Profile saved ✅");
 };
-
 
 // Logout
 logoutBtn.onclick = () => {
@@ -882,6 +878,28 @@ if (FM_CONFIG.ENABLE_BACKEND_PUSH) {
   registerPush();
 }
 
+</script>
+
+
+<script>
+window.addEventListener('error', (e) => {
+  try {
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.bottom = '60px';
+    div.style.left = '50%';
+    div.style.transform = 'translateX(-50%)';
+    div.style.background = '#b00020';
+    div.style.color = '#fff';
+    div.style.padding = '8px 12px';
+    div.style.borderRadius = '10px';
+    div.style.zIndex = '9999';
+    div.style.fontSize = '12px';
+    div.textContent = 'JS error: ' + (e.message || 'unknown');
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+  } catch(_) {}
+});
 </script>
 
 </body>
