@@ -244,6 +244,34 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  async function saveUserData(email, allItems, trash) {
+  await setDoc(doc(db, "users", email), { allItems, trash });
+}
+
+async function loadUserData(email) {
+  const snap = await getDoc(doc(db, "users", email));
+  if (snap.exists()) {
+    return snap.data();
+  } else {
+    return { allItems: [], trash: [] };
+  }
+}
+
+  signInWithEmailAndPassword(auth, email, password)
+  .then(async (userCredential) => {
+    const user = userCredential.user;
+
+    // Load saved data
+    const data = await loadUserData(user.email);
+    allItems = data.allItems;
+    trash = data.trash;
+    renderItems(); // (your function to refresh UI)
+  })
+  .catch((error) => {
+    alert(error.message);
+  });
+
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -728,10 +756,11 @@ saveProfileBtn.onclick = () => {
   userProfile.name = nameInput.value || "Guest";
   userProfile.email = emailInput.value || "guest@example.com";
   userProfile.avatar = avatarSelect.value;
-  localStorage.setItem('userProfile', JSON.stringify(userProfile));
-  renderProfile();
-  loadUserData();       // load items for this email
-  renderCurrentPanel(); // refresh UI
+  const data = await loadUserData(user.email);
+allItems = data.allItems;
+trash = data.trash;
+renderItems();   // refresh your UI
+ // refresh UI
   showToast("Profile saved ✅");
 };
 
