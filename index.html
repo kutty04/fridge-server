@@ -245,8 +245,39 @@ button:disabled{ opacity:.6; transform:none; cursor:default; }
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  async function saveUserData(email, allItems, trash) {
-  await setDoc(doc(db, "users", email), { allItems, trash });
+ // Save to Firestore + localStorage
+async function saveUserData(email, allItems, trash) {
+  try {
+    await setDoc(doc(db, "users", email), { allItems, trash });
+  } catch (err) {
+    console.warn("⚠️ Firestore save failed, using localStorage only:", err);
+  }
+  // always keep localStorage updated
+  localStorage.setItem(`allItems_${email}`, JSON.stringify(allItems));
+  localStorage.setItem(`trash_${email}`, JSON.stringify(trash));
+}
+
+// Load from Firestore → fallback to localStorage
+async function loadUserData(email) {
+  try {
+    const snap = await getDoc(doc(db, "users", email));
+    if (snap.exists()) {
+      const data = snap.data();
+      // refresh localStorage copy too
+      localStorage.setItem(`allItems_${email}`, JSON.stringify(data.allItems));
+      localStorage.setItem(`trash_${email}`, JSON.stringify(data.trash));
+      return data;
+    }
+  } catch (err) {
+    console.warn("⚠️ Firestore load failed, falling back to localStorage:", err);
+  }
+  // fallback
+  return {
+    allItems: JSON.parse(localStorage.getItem(`allItems_${email}`) || "[]"),
+    trash: JSON.parse(localStorage.getItem(`trash_${email}`) || "[]"),
+  };
+}
+
 }
 
 async function loadUserData(email) {
